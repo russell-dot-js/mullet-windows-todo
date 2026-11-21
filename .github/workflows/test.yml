@@ -1,0 +1,44 @@
+name: Windows checkbox inspection
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: powershell
+    env:
+      MULLET_SQL: 'Server=(localdb)\CheckboxInspection;Database=MulletTodo;Integrated Security=true'
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Select the JDK source-file launcher
+        run: Add-Content $env:GITHUB_PATH "$env:JAVA_HOME_17_X64\bin"
+      - name: Convene the LocalDB land office
+        run: |
+          sqllocaldb create CheckboxInspection
+          sqllocaldb start CheckboxInspection
+          if ($LASTEXITCODE -ne 0) { throw 'Could not start LocalDB' }
+          ./install.ps1 -Server '(localdb)\CheckboxInspection' -Database MulletTodo
+      - name: Prosecute forged JVM and MASM dies
+        run: python inspect-engravers.py
+      - name: Operate the Windows desktop counter
+        env:
+          MULLET_SCREENSHOT: ${{ runner.temp }}/windows-todo.png
+        run: ./inspect-desktop.ps1
+      - name: Check JVM quota
+        run: python scripts/quota.py
+      - name: Revoke the underwriters' accreditation
+        run: ./inspect-underwriters.ps1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-todo-preview
+          path: ${{ runner.temp }}/windows-todo.png
+          if-no-files-found: error
